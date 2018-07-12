@@ -1,0 +1,100 @@
+﻿Add-PSSnapin VMware.VimAutomation.Core
+disconnect-viserver * -Force -Confirm:$false
+Connect-VIServer toesxvc01
+Connect-VIServer toesxvc501
+foreach ($hostname in get-content "C:\MyScripts\MigrationList.txt")
+    {
+        $allvm = get-vm  | Where-Object {$_.Name -eq $hostname}| select Name,Description,networkadapters,folder
+            foreach ($vm in $allvm)
+                {
+                    $vmname = $vm.name
+                    $vmnic = $vm.NetworkAdapters
+                    $vmfolder = $vm.folder.name
+                    $vmvlan = $vmnic.NetworkName
+                    $vmview = get-view -viewtype virtualmachine -Filter @{"Name" = $vmname}
+                    $vmxpath = $vmview.config.files.VmPathName
+                    #$vmname;$vmnic;$vmfolder;$vmvlan;$vmxpath | ft  
+                    $vmname+";"+$vmfolder+";"+$vmvlan+";"+$vmxpath #| #Out-File E:\Script\output\vminfo.csv -Append
+                }
+            $newvmvlan = ""
+            if ($vmvlan -Match "297")
+                {
+                    $newvmvlan = "VLAN 297 - AG DMZ Servers"
+                }
+            elseif ($vmvlan -Match "312")
+                {
+                    $newvmvlan = "VLAN 312 - AG Citrix"
+                }
+            elseif ($vmvlan -Match "337")
+                {
+                    $newvmvlan = "VLAN 337 - AG Exchange"
+                }
+            elseif ($vmvlan -Match "338")
+                {
+                    $newvmvlan = "VLAN 338 - AG Lawson"
+                }
+            elseif ($vmvlan -Match "341")
+                {
+                    $newvmvlan = "VLAN 341 - AG File Servers"
+                }
+            elseif ($vmvlan -Match "343")
+                {
+                    $newvmvlan = "VLAN 343 - AG Monitor"
+                }
+            elseif ($vmvlan -Match "344")
+                {
+                    $newvmvlan = "VLAN 344 - AG SMS"
+                }
+            elseif ($vmvlan -Match "346")
+                {
+                    $newvmvlan = "VLAN 346 - AG General Wintel"
+                }
+            elseif ($vmvlan -Match "347")
+                {
+                    $newvmvlan = "VLAN 347 - AG AD Services"
+                }
+            elseif ($vmvlan -Match "348")
+                {
+                    $newvmvlan = "VLAN 348 - AG Web Services"
+                }
+            elseif ($vmvlan -Match "350")
+                {
+                    $newvmvlan = "VLAN 350 - AG Dev DHCP"
+                }
+            $newvmvlan
+            $oldtag =""
+            $newtag = ""
+            $oldtag = get-vm $hostname | Get-TagAssignment
+            if ($oldtag -match "ner daily")
+                {
+                    $newtag = "NER Daily"
+                }
+            elseif ($oldtag -match "ner Weekly")
+                {
+                    $newtag = "NER Weekly"
+                }
+            elseif ($oldtag -match "edc Weekly")
+                {
+                    $newtag = "EER Weekly"
+                }
+            elseif ($oldtag -match "edc daily")
+                {
+                    $newtag = "EER Daily"
+                } 
+                $hostname+":"+$oldtag+":"+$newtag | Out-File c:\script\vm-tags.csv -Append                 
+            ##################################################
+            remove-vm $hostname -Confirm:$false
+            ############## add to new esxi 6 ##########################33
+            new-vm -VMFilePath $vmxpath -VMHost agtoesx506.int.bellmedia.ca -Location $vmfolder -Confirm:$false
+            Get-VM $hostname | Get-NetworkAdapter | Set-NetworkAdapter -NetworkName $newvmvlan -Confirm:$false
+            set-vm -VM $hostname -Version v11 -Confirm:$false
+            # get-vm $hostname | New-TagAssignment -tag $newtag
+            ###################################################3
+            $vmname = ""
+            $vmfolder = ""
+            $vmvlan = ""
+            $vmxpath = ""
+
+            # NOTE tag name does not like space in the name
+    }
+    
