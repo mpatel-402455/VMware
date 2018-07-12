@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS                                                                     
     Get VM servers details.
 .DESCRIPTION                                                                  
@@ -9,7 +9,7 @@
     Script Version : 2.0                                                      
     Last Modified  : October 19, 2016                                           
     Prerequisite   : PowerShell/PowerCLI/Module:VMware.VimAutomation.Cis.Core 
-    Copyright      : https://github.com/mpatel-402455                                         
+    Copyright      : https://github.com/mpatel-402455                                            
     
 #>
 
@@ -18,12 +18,12 @@
  $date = Get-Date -UFormat %Y-%m-%d-%H%M%S
  $date
 
-#$VMs= @("tordevelk01","TORORAREP04","tordevdru01")
+#$VMs= @("Srv01","TORSRV04","tordevdSRV01")
 #$VMs = (Import-Csv -Path C:\MyScripts\In-Put-Files\DR-ServerList2016.csv)
 
 #$VMs = (Get-VirtualPortGroup -Name 229-QA-ADMIN, 231-QA-DMZ,232-QA-VIDEO,233-QA-DATA, 894-ORACLE-RAC | Get-VM)
-#$vms = (Get-VMHost -Name 10.224.129.222 | Get-VM)
-#$VMs = (Get-Cluster -Name "QATest cluster" | Get-VM)
+#$vms = (Get-VMHost -Name 10.22.19.22 | Get-VM)
+#$VMs = (Get-Cluster -Name "QAcluster" | Get-VM)
 
 $VMs = (Get-VM)
 
